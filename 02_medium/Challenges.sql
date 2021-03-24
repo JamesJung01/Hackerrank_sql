@@ -1,24 +1,21 @@
-SELECT h.hacker_id,
-       h.name,
-       COUNT(c.challenge_id) AS cnt
+SELECT C.HACKER_ID, 
+       H.NAME, 
+       COUNT(C.HACKER_ID) AS CREATED
 
-FROM hackers AS h JOIN challenges AS c
-ON h.hacker_id = c.hacker_id
+FROM HACKERS AS H
+JOIN CHALLENGES AS C
+ON H.HACKER_ID = C.HACKER_ID
 
-GROUP BY h.hacker_id
-HAVING 
-        c_count = 
-            (SELECT MAX(tmp.cnt)
-             FROM (SELECT COUNT(hacker_id) AS tmp_cnt
-                FROM challenges
-                GROUP BY hacker_id
-                ORDER BY hacker_id) tmp)
-        or c_count in
-            (SELECT t.cnt
-             FROM (SELECT COUNT(*) AS cnt
-                  FROM challenges
-                  GROUP BY hacker_id) t
-             GROUP BY t.cnt
-             HAVING COUNT(t.cnt)=1)
+GROUP BY C.HACKER_ID, H.NAME
+HAVING CREATED = (SELECT COUNT(C1.CHALLENGE_ID) AS CREATED1
+                  FROM CHALLENGES AS C1
+                  GROUP BY C1.HACKER_ID
+                  ORDER BY CREATED1 DESC
+                  LIMIT 1)
+OR
+       CREATED NOT IN (SELECT COUNT(C2.CHALLENGE_ID)
+                       FROM CHALLENGES AS C2
+                       GROUP BY C2.HACKER_ID
+                       HAVING C.HACKER_ID != C2.HACKER_ID)
 
-ORDER BY c_count DESC, h.hacker_id
+ORDER BY CREATED DESC, C.HACKER_ID
